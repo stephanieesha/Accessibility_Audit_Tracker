@@ -1,0 +1,48 @@
+name: Accessibility scan
+
+on:
+  schedule:
+    # Daily is enough here - accessibility violations don't fluctuate
+    # run-to-run the way flaky tests do, so frequent scanning adds noise
+    # without adding signal.
+    - cron: '0 8 * * *'
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run accessibility scan
+        run: npx playwright test
+        continue-on-error: true
+
+      - name: Commit updated history
+        run: |
+          git config user.name "a11y-tracker-bot"
+          git config user.email "actions@github.com"
+          git add history/a11y-history.jsonl screenshots/
+          git diff --staged --quiet || git commit -m "chore: update accessibility scan history [skip ci]"
+          git pull --rebase origin main
+          git push

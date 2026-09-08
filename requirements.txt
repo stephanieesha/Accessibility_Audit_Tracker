@@ -1,0 +1,4 @@
+# The analyzer uses only the Python standard library (json, pathlib).
+# Flask powers the on-demand scan web UI.
+flask>=3.0.0
+pytest>=8.0.0

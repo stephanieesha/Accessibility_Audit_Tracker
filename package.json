@@ -1,0 +1,13 @@
+{
+  "name": "accessibility-audit-tracker",
+  "version": "1.0.0",
+  "description": "Tracks accessibility violations over time using axe-core.",
+  "scripts": {
+    "scan": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0",
+    "@axe-core/playwright": "^4.13.0",
+    "@types/node": "^20.0.0"
+  }
+}

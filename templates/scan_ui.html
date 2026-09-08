@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Accessibility Scanner</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: #f7f5f2; color: #2a2420; line-height: 1.5; }
+    header { padding: 20px 32px; background: #2a2420; color: #fff; }
+    header h1 { margin: 0; font-size: 20px; }
+    .container { max-width: 800px; margin: 24px auto; padding: 0 24px; }
+    .card { background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .card h2 { margin-top: 0; font-size: 16px; color: #6b5d4f; }
+    .scan-row { display: flex; gap: 8px; }
+    input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+    button { padding: 10px 20px; border: none; border-radius: 6px; background: #b5651d; color: #fff; font-size: 14px; cursor: pointer; }
+    button:hover { background: #9c5518; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .hint { font-size: 12px; color: #999; margin-top: 8px; }
+    .severity-badge { padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+    .critical { background: #fde8e8; color: #8a0000; }
+    .serious { background: #fdf0e0; color: #8a5a00; }
+    .moderate { background: #fdf8e0; color: #8a7a00; }
+    .minor { background: #eef0e8; color: #4a5a2a; }
+    .violation-item { border: 1px solid #eee; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+    .violation-item h3 { margin: 6px 0; font-size: 14px; }
+    .violation-item a { font-size: 12px; color: #b5651d; }
+    .screenshot-container { margin-top: 16px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+    .screenshot-container img { width: 100%; display: block; }
+    .error-box { background: #fde8e8; border: 1px solid #f0b8b8; color: #8a0000; padding: 12px; border-radius: 6px; font-size: 13px; }
+    .empty-state { color: #999; text-align: center; padding: 20px 0; }
+  </style>
+</head>
+<body>
+  <header><h1>Accessibility Scanner</h1></header>
+  <div class="container">
+    <div class="card">
+      <h2>Scan a page</h2>
+      <div class="scan-row">
+        <input type="text" id="urlInput" placeholder="https://example.com" />
+        <button id="scanBtn" onclick="runScan()">Scan</button>
+      </div>
+      <div class="hint">Pages hosted on Render's free tier can take 20-60s to wake up - the scanner waits for that automatically.</div>
+    </div>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    async function runScan() {
+      const url = document.getElementById('urlInput').value.trim();
+      const btn = document.getElementById('scanBtn');
+      const results = document.getElementById('results');
+
+      if (!url) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Scanning...';
+      results.innerHTML = '<div class="card"><div class="empty-state">Scanning - this can take up to a minute on a cold-started page...</div></div>';
+
+      try {
+        const res = await fetch('/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Scan failed');
+        renderResults(data);
+      } catch (err) {
+        results.innerHTML = `<div class="card"><div class="error-box">${err.message}</div></div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Scan';
+      }
+    }
+
+    function renderResults(data) {
+      const results = document.getElementById('results');
+      let html = `<div class="card"><h2>Results for ${data.url}</h2>`;
+      html += `<p>${data.total_violations} violation(s) found - scanned at ${data.timestamp}</p>`;
+
+      if (data.screenshot_url) {
+        html += `<div class="screenshot-container"><img src="${data.screenshot_url}" alt="Screenshot with violations outlined in red" /></div>`;
+      }
+
+      if (data.violations.length === 0) {
+        html += '<p>No violations found.</p>';
+      } else {
+        data.violations.forEach((v) => {
+          html += `<div class="violation-item">
+            <span class="severity-badge ${v.impact}">${v.impact}</span>
+            <h3>${v.rule_id}</h3>
+            <p>${v.description}</p>
+            <p>Affects ${v.affected_node_count} element(s).</p>
+            <a href="${v.help_url}" target="_blank">View axe-core documentation &rarr;</a>
+          </div>`;
+        });
+      }
+
+      html += '</div>';
+      results.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
