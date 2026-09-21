@@ -5,30 +5,31 @@
   <title>Accessibility Scanner</title>
   <style>
     * { box-sizing: border-box; }
-    body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: #f7f5f2; color: #2a2420; line-height: 1.5; }
-    header { padding: 20px 32px; background: #2a2420; color: #fff; }
-    header h1 { margin: 0; font-size: 20px; }
+    body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: #fff; color: #000; line-height: 1.5; }
+    header { padding: 22px 32px; background: #132B18; color: #fff; }
+    header h1 { margin: 0; font-size: 20px; font-weight: 700; }
     .container { max-width: 800px; margin: 24px auto; padding: 0 24px; }
-    .card { background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-    .card h2 { margin-top: 0; font-size: 16px; color: #6b5d4f; }
+    .card { background: #fff; border: 1px solid #E0E0E0; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+    .card h2 { margin-top: 0; font-size: 15px; color: #000; font-weight: 700; }
     .scan-row { display: flex; gap: 8px; }
-    input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-    button { padding: 10px 20px; border: none; border-radius: 6px; background: #b5651d; color: #fff; font-size: 14px; cursor: pointer; }
-    button:hover { background: #9c5518; }
+    input[type="text"] { flex: 1; padding: 11px 18px; border: 1px solid #D5DECB; border-radius: 24px; font-size: 14px; font-weight: 600; color: #000; }
+    button { padding: 11px 24px; border: none; border-radius: 24px; background: #A8D93A; color: #132B18; font-size: 14px; font-weight: 700; cursor: pointer; }
+    button:hover { background: #93C42D; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .hint { font-size: 12px; color: #999; margin-top: 8px; }
-    .severity-badge { padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+    .hint { font-size: 12px; color: #000; margin-top: 10px; font-weight: 600; }
+    .severity-badge { padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 12px; }
     .critical { background: #fde8e8; color: #8a0000; }
     .serious { background: #fdf0e0; color: #8a5a00; }
     .moderate { background: #fdf8e0; color: #8a7a00; }
     .minor { background: #eef0e8; color: #4a5a2a; }
-    .violation-item { border: 1px solid #eee; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
-    .violation-item h3 { margin: 6px 0; font-size: 14px; }
-    .violation-item a { font-size: 12px; color: #b5651d; }
-    .screenshot-container { margin-top: 16px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+    .violation-item { border: 1px solid #E5E5E5; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+    .violation-item h3 { margin: 8px 0 4px; font-size: 14px; font-weight: 700; color: #000; }
+    .violation-item p { color: #000; font-weight: 600; }
+    .violation-item a { font-size: 12px; color: #4C7A1F; font-weight: 700; }
+    .screenshot-container { margin-top: 16px; border: 1px solid #E5E5E5; border-radius: 12px; overflow: hidden; }
     .screenshot-container img { width: 100%; display: block; }
-    .error-box { background: #fde8e8; border: 1px solid #f0b8b8; color: #8a0000; padding: 12px; border-radius: 6px; font-size: 13px; }
-    .empty-state { color: #999; text-align: center; padding: 20px 0; }
+    .error-box { background: #fff; border: 1px solid #D9707A; color: #000; font-weight: 700; padding: 12px 16px; border-radius: 12px; font-size: 13px; }
+    .empty-state { color: #000; font-weight: 600; text-align: center; padding: 20px 0; }
   </style>
 </head>
 <body>
