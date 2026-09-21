@@ -6,8 +6,9 @@ on every violation found, and the highlighted screenshot from the most
 recent scan of each page.
 """
 
+import html
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from trend_analyzer import full_report
 
@@ -93,16 +94,27 @@ TEMPLATE = """<!DOCTYPE html>
 """
 
 
+def screenshot_src(recorded_path: str) -> str:
+    """History records the absolute path from whichever machine ran the scan
+    (for example /Users/name/... or C:\\...). Reports need a path relative to
+    the report itself, so keep only the file name."""
+    return "screenshots/" + PureWindowsPath(recorded_path).name
+
+
+def esc(value) -> str:
+    return html.escape(str(value), quote=True)
+
+
 def render_violation_detail(violation: dict) -> str:
-    tags = ", ".join(violation.get("tags", []))
+    tags = esc(", ".join(violation.get("tags", [])))
     return f"""
     <div class="violation-item">
-      <span class="severity-badge {violation['impact']}">{violation['impact']}</span>
-      <h3>{violation['rule_id']}</h3>
-      <p>{violation['description']}</p>
+      <span class="severity-badge {esc(violation['impact'])}">{esc(violation['impact'])}</span>
+      <h3>{esc(violation['rule_id'])}</h3>
+      <p>{esc(violation['description'])}</p>
       <p>Affects {violation['affected_node_count']} element(s) on the page.</p>
       <div class="tags">WCAG tags: {tags}</div>
-      <a href="{violation['help_url']}" target="_blank">View axe-core documentation for this rule &rarr;</a>
+      <a href="{esc(violation['help_url'])}" target="_blank" rel="noopener">View axe-core documentation for this rule &rarr;</a>
     </div>
     """
 
@@ -112,10 +124,10 @@ def render_page_card(page_data: dict, index: int) -> str:
     trend = page_data["trend"]
 
     if not latest["found"]:
-        return f'<div class="card"><h2>{latest["page_name"]}</h2><p class="no-data">No scans recorded yet.</p></div>'
+        return f'<div class="card"><h2>{esc(latest["page_name"])}</h2><p class="no-data">No scans recorded yet.</p></div>'
 
     severity_html = "".join(
-        f'<span class="severity-badge {sev}">{sev}: {count}</span>'
+        f'<span class="severity-badge {esc(sev)}">{esc(sev)}: {count}</span>'
         for sev, count in latest["by_severity"].items()
     )
 
@@ -131,15 +143,15 @@ def render_page_card(page_data: dict, index: int) -> str:
     if latest.get("screenshot"):
         screenshot_html = f"""
         <div class="screenshot-container">
-          <img src="{latest['screenshot']}" alt="Screenshot of {latest['page_name']} with violating elements outlined in red" />
+          <img src="{esc(screenshot_src(latest['screenshot']))}" alt="Screenshot of {esc(latest['page_name'])} with violating elements outlined in red" />
           <div class="screenshot-caption">Elements with violations are outlined in red.</div>
         </div>
         """
 
     return f"""
     <div class="card">
-      <h2>{latest['page_name']}</h2>
-      <p>Latest scan: {latest['timestamp']} — {latest['total_violations']} total violations</p>
+      <h2>{esc(latest['page_name'])}</h2>
+      <p>Latest scan: {esc(latest['timestamp'])} — {latest['total_violations']} total violations</p>
       <div class="severity-row" style="gap: 8px;">{severity_html}</div>
       <canvas id="{canvas_id}" height="120"></canvas>
       <script>
