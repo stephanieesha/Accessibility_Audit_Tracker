@@ -5,9 +5,11 @@
   "scripts": {
     "scan": "playwright test"
   },
-  "devDependencies": {
+  "dependencies": {
     "@playwright/test": "^1.47.0",
-    "@axe-core/playwright": "^4.13.0",
+    "@axe-core/playwright": "^4.13.0"
+  },
+  "devDependencies": {
     "@types/node": "^20.0.0"
   }
 }

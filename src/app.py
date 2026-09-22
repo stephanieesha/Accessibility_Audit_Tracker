@@ -9,11 +9,16 @@ Then open: http://localhost:5020
 """
 
 import json
+import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
+
+sys.path.insert(0, str(Path(__file__).parent))
+from limits import client_ip, daily_scan_allowed, is_safe_url, too_many_requests  # noqa: E402
 
 ROOT = Path(__file__).parent.parent
 SCREENSHOTS_DIR = ROOT / "screenshots"
@@ -39,6 +44,23 @@ def log_scan(output: dict, url: str) -> None:
         f.write(json.dumps(record) + "\n")
 
 
+@app.before_request
+def limit_scans_per_visitor():
+    if request.method == "POST" and too_many_requests(client_ip(request)):
+        return jsonify({"error": "Too many scans - please wait a minute and try again"}), 429
+
+
+@app.after_request
+def keep_out_of_search_engines(response):
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
+@app.route("/robots.txt")
+def robots():
+    return "User-agent: *\nDisallow: /\n", 200, {"Content-Type": "text/plain"}
+
+
 @app.route("/")
 def index():
     return render_template("scan_ui.html")
@@ -53,6 +75,13 @@ def scan():
         return jsonify({"error": "URL is required"}), 400
     if not url.startswith(("http://", "https://")):
         return jsonify({"error": "URL must start with http:// or https://"}), 400
+
+    safe, reason = is_safe_url(url)
+    if not safe:
+        return jsonify({"error": reason}), 400
+
+    if not daily_scan_allowed():
+        return jsonify({"error": "The daily limit for on-demand scans has been reached - please try again tomorrow"}), 429
 
     screenshot_path = SCREENSHOTS_DIR / f"{safe_filename(url)}-latest.png"
 
@@ -78,7 +107,12 @@ def scan():
     if "error" in output:
         return jsonify(output), 500
 
-    log_scan(output, url)
+    # On a public deployment the container's filesystem is not persistent, so writing to the
+    # log here would silently vanish on the next restart. The trend chart on the published
+    # report stays sourced from the scheduled GitHub Actions scan either way; DISABLE_HISTORY_LOG
+    # just stops this app pretending an on-demand scan was recorded when it was not.
+    if os.environ.get("DISABLE_HISTORY_LOG", "").lower() != "true":
+        log_scan(output, url)
 
     if output.get("screenshot"):
         output["screenshot_url"] = f"/screenshots/{Path(output['screenshot']).name}"
@@ -87,4 +121,4 @@ def scan():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5020)
+    app.run(debug=os.environ.get("FLASK_DEBUG", "1") == "1", port=int(os.environ.get("PORT", "5020")))

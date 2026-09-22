@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: accessibility-audit-tracker-scanner
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      # A visitor's on-demand scan is shown in the browser but NOT written to
+      # history/a11y-history.jsonl: this container's filesystem resets on every restart and
+      # redeploy, so a "saved" scan here would silently disappear. The trend chart on the
+      # published Netlify report only ever reflects the scheduled GitHub Actions scan.
+      - key: DISABLE_HISTORY_LOG
+        value: "true"
+      - key: WRITE_LIMIT_PER_MINUTE
+        value: "3"
+      - key: DAILY_SCAN_LIMIT
+        value: "50"
