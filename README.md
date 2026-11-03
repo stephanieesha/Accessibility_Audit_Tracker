@@ -6,10 +6,7 @@ are things getting better or worse, and by how much.
 
 ## Why accessibility, and why tracked over time
 
-Accessibility compliance is a genuinely underserved area in most QA
-portfolios - most candidates have zero accessibility work to show, despite
-it being a real compliance and usability requirement for production
-software. A single audit is a snapshot; tracking violations over time is
+Used to ensure personal apps I build meet accessibility compliance standards. A single audit is a snapshot; tracking violations over time is
 what actually shows whether accessibility work is improving things or
 just being ignored.
 
